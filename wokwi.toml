@@ -1,0 +1,4 @@
+[wokwi]
+version=1
+firmware='.pio/build/megaADK/firmware.hex'
+elf='.pio/build/megaADK/firmware.elf'

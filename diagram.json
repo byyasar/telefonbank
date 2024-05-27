@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "author": "Uri Shaked",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "wokwi-a4988",
+      "id": "drv1",
+      "top": -331,
+      "left": -388.4,
+      "rotate": 270,
+      "attrs": {}
+    },
+    { "type": "wokwi-arduino-mega", "id": "mega", "top": -57, "left": -339.6, "attrs": {} },
+    {
+      "type": "wokwi-stepper-motor",
+      "id": "stepper1",
+      "top": -581.09,
+      "left": -469.52,
+      "attrs": { "display": "angle", "arrow": "red" }
+    },
+    { "type": "wokwi-vcc", "id": "vcc1", "top": -220.04, "left": 38.4, "attrs": {} },
+    { "type": "wokwi-vcc", "id": "vcc2", "top": -354.44, "left": -432, "attrs": {} },
+    { "type": "wokwi-gnd", "id": "gnd2", "top": -307.2, "left": -432.6, "attrs": {} },
+    {
+      "type": "wokwi-lcd2004",
+      "id": "lcd1",
+      "top": -176,
+      "left": 111.2,
+      "attrs": { "pins": "i2c" }
+    },
+    {
+      "type": "wokwi-membrane-keypad",
+      "id": "keypad1",
+      "top": -491.6,
+      "left": 389.6,
+      "attrs": {}
+    },
+    { "type": "wokwi-gnd", "id": "gnd4", "top": -134.4, "left": 9, "attrs": {} },
+    {
+      "type": "wokwi-a4988",
+      "id": "drv2",
+      "top": -331,
+      "left": -148.4,
+      "rotate": 270,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-stepper-motor",
+      "id": "stepper2",
+      "top": -581.09,
+      "left": -229.52,
+      "attrs": { "display": "angle", "arrow": "yellow" }
+    },
+    { "type": "wokwi-a4988", "id": "drv3", "top": -331, "left": 82, "rotate": 270, "attrs": {} },
+    {
+      "type": "wokwi-stepper-motor",
+      "id": "stepper3",
+      "top": -581.09,
+      "left": 0.88,
+      "attrs": { "display": "angle", "arrow": "green" }
+    },
+    {
+      "type": "wokwi-slide-switch",
+      "id": "sw1",
+      "top": -389.2,
+      "left": -553.7,
+      "attrs": { "label": "Push me!" }
+    }
+  ],
+  "connections": [
+    [ "drv1:1B", "stepper1:B-", "black", [ "v0" ] ],
+    [ "drv1:1A", "stepper1:B+", "green", [ "v-76.95", "h-38.32" ] ],
+    [ "stepper1:A+", "drv1:2A", "blue", [ "v48", "h38.32" ] ],
+    [ "stepper1:A-", "drv1:2B", "red", [ "v67.2", "h38.32" ] ],
+    [ "drv1:SLEEP", "drv1:RESET", "green", [ "v15.92", "h-9.9" ] ],
+    [ "mega:20", "lcd1:SDA", "green", [ "v0" ] ],
+    [ "lcd1:SCL", "mega:21", "green", [ "h0" ] ],
+    [ "lcd1:VCC", "vcc1:VCC", "red", [ "h0" ] ],
+    [ "lcd1:GND", "gnd4:GND", "black", [ "h0" ] ],
+    [ "mega:A0", "drv1:STEP", "green", [ "v64.5", "h-272.1", "v-451.2", "h220.8" ] ],
+    [ "drv1:DIR", "mega:A1", "green", [ "v96", "h-268.8", "v441.6", "h297.6" ] ],
+    [ "drv1:ENABLE", "mega:38", "green", [ "v38.4", "h-182.4", "v537.6", "h508.8", "v-212.35" ] ],
+    [ "keypad1:R1", "mega:47", "green", [ "v0" ] ],
+    [ "keypad1:R2", "mega:45", "green", [ "v0" ] ],
+    [ "keypad1:R3", "mega:43", "green", [ "v0" ] ],
+    [ "keypad1:R4", "mega:41", "green", [ "v0" ] ],
+    [ "mega:39", "keypad1:C1", "green", [ "v1.15", "h275.8" ] ],
+    [ "keypad1:C2", "mega:37", "green", [ "v0" ] ],
+    [ "keypad1:C3", "mega:35", "green", [ "v0" ] ],
+    [ "keypad1:C4", "mega:33", "green", [ "v0" ] ],
+    [ "drv2:1B", "stepper2:B-", "black", [ "v0" ] ],
+    [ "drv2:1A", "stepper2:B+", "green", [ "v-76.95", "h-38.32" ] ],
+    [ "stepper2:A+", "drv2:2A", "blue", [ "v48", "h38.32" ] ],
+    [ "stepper2:A-", "drv2:2B", "red", [ "v67.2", "h38.32" ] ],
+    [ "drv2:SLEEP", "drv2:RESET", "green", [ "v15.92", "h-9.9" ] ],
+    [ "drv3:1B", "stepper3:B-", "black", [ "v0" ] ],
+    [ "drv3:1A", "stepper3:B+", "green", [ "v-76.95", "h-38.32" ] ],
+    [ "stepper3:A+", "drv3:2A", "blue", [ "v48", "h38.32" ] ],
+    [ "stepper3:A-", "drv3:2B", "red", [ "v67.2", "h38.32" ] ],
+    [ "drv3:SLEEP", "drv3:RESET", "green", [ "v15.92", "h-9.9" ] ],
+    [ "sw1:3", "vcc2:VCC", "green", [ "v0" ] ],
+    [ "sw1:1", "gnd2:GND", "green", [ "v0" ] ],
+    [ "sw1:2", "mega:2", "green", [ "v278.4", "h470.5" ] ],
+    [ "mega:A2", "drv2:ENABLE", "green", [ "v74.1", "h-310.3", "v-393.6", "h201.6" ] ],
+    [ "drv2:STEP", "mega:A6", "green", [ "v134.4", "h-278.4", "v451.2", "h336" ] ],
+    [ "mega:A7", "drv2:DIR", "green", [ "v131.7", "h-387.1", "v-489.6", "h316.8" ] ],
+    [ "mega:A8", "drv3:ENABLE", "green", [ "v170.1", "h-411.45", "v-556.8", "h480" ] ],
+    [ "drv3:STEP", "mega:46", "green", [ "v67.2", "h-547.2", "v595.2", "h470.4" ] ],
+    [ "mega:48", "drv3:DIR", "green", [ "v250.75", "h-511", "v-585.6", "h576" ] ]
+  ],
+  "dependencies": {}
+}
