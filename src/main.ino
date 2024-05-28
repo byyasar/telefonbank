@@ -46,7 +46,7 @@ void setup()
   sifirlamaFNC();
   stepperX.setCurrentPosition(0); // Mevcut pozisyonu sıfırla
   Serial.println("Sıfırlama tamamlandı.");
-  satir1 = "   Telefon Bank";
+  satir1 = "   Telefon Bank v1";
   satir2 = "--- Hoş Geldiniz ---";
   satir3 = "";
   satir4 = ".. Kart Okutunuz ...";
@@ -75,9 +75,60 @@ void loop()
       satir2 = "";
       satir3 = "";
       satir4 = "";
+      lcd.setCursor(0, 3);
+      satir3 = girilenSifre;
+      // Şifreyi sıfırlama
+      memset(girilenSifre, 0, sizeof(girilenSifre));
+      sifreIndex = 0;
     }
-    if (key == '*')
+    else if (sifreIndex < 6)
     {
+      // Şifre girişi devam ediyor
+      girilenSifre[sifreIndex] = key;
+      sifreIndex++;
+      satir3 = girilenSifre;
+      if (key == 'C')
+      {
+        // şifreyi temizle
+        Serial.println("şifreyi temizle");
+        for (int i = 0; i < 6; i++)
+        {
+          girilenSifre[i] =' ';
+        }
+        satir3 = girilenSifre;
+      }
+    }
+    if (key == '*' && sifreIndex == 6)
+    {
+      
+      if (key == 'C')
+      {
+        // şifreyi temizle
+        Serial.println("şifreyi temizle");
+        for (int i = 0; i < 6; i++)
+        {
+          girilenSifre[i] =' ';
+        }
+        satir3 = girilenSifre;
+      }
+      Serial.println("şifreyi kontrol et");
+      int id = (String(girilenSifre[0]) + String(girilenSifre[1])).toInt();
+
+      // char str[4];
+      String sifre = "";
+      for (int i = 2; i < 6; i++)
+      {
+        // sprintf(str, "%d", girilenSifre[i]);
+        // itoa(girilenSifre[i], str, 10); // 10 tabanı (decimal) kullanarak dönüştür
+        sifre += String(girilenSifre[i]);
+
+        Serial.print("sifre :");
+        Serial.println(sifre);
+      }
+      Serial.print("sifre :");
+      Serial.println(sifre);
+      Serial.print("id :");
+      Serial.println(sifreDogrulamaFnc(id, sifre));
     }
     if (key == 'A')
     {
@@ -87,10 +138,10 @@ void loop()
     {
       motor2SolaDonFnc();
     }
-    if (key == 'C')
+    /*if (key == 'C')
     {
       motor3SolaDonFnc();
-    }
+    }*/
     if (key == 'D')
     {
       motor3SagaDonFnc();
@@ -100,10 +151,10 @@ void loop()
 
 void EkraniGuncelleFnc()
 {
-String mesaj="";
-  cekmeceDurum?mesaj="Çek:Açık":mesaj="Çek:Kapalı";
-  kapakDurum?mesaj+=" Kap:Açık":mesaj+=" Kap:Kapal";
-  satir4=mesaj;
+  String mesaj = "";
+  cekmeceDurum ? mesaj = "Çek:Açık" : mesaj = "Çek:Kapalı";
+  kapakDurum ? mesaj += " Kap:Açık" : mesaj += " Kap:Kapal";
+  satir4 = mesaj;
 
   if (millis() - sonZaman > ekranYenileme)
   {
