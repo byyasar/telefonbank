@@ -1,7 +1,6 @@
 #include <Wire.h>                 // I2C kütüphanesi
 #include <LiquidCrystal_I2cTUR.h> // I2C LCD kütüphanesi
 #include <Keypad.h>               // Keypad kütüphanesi
-
 #include "MotorControl.h"
 #include "RFIDControl.h"
 #include "EncoderControl.h"
@@ -24,10 +23,11 @@ char keys[ROWS][COLS] = {
     {'7', '8', '9', 'C'},
     {'*', '0', '#', 'D'}};
 
-uint8_t colPins[COLS] = {39, 37, 35, 33}; // Pins connected to C1, C2, C3, C4
+uint8_t colPins[COLS] = {31, 37, 35, 33}; // Pins connected to C1, C2, C3, C4
 uint8_t rowPins[ROWS] = {47, 45, 43, 41}; // Pins connected to R1, R2, R3, R4
 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
 unsigned long lastActivityTime;              // Son aktivite zamanı
 const unsigned long timeoutDuration = 10000; // 10 saniye zaman aşımı süresi
 bool inPasswordEntryMode = false;            // Şifre giriş modu durumu
@@ -84,6 +84,7 @@ void loop()
 
     if (key)
     {
+        Serial.println(key);
         lastActivityTime = millis(); // Tuşa basıldıysa son aktivite zamanını güncelle
         handleKey(key);              // Tuşu işle
     }

@@ -93,7 +93,7 @@ void konumaGitFnc(int id) {
     Serial.println(stepperX.currentPosition());
 }
 
-void cekmeceDisariFnc() {
+void cekmeceIceriFnc() {
     stepperY.setCurrentPosition(0);
     digitalWrite(enablePinY, 0);
     stepperY.setSpeed(1500);
@@ -105,10 +105,10 @@ void cekmeceDisariFnc() {
     digitalWrite(enablePinY, 1);
 }
 
-void cekmeceIceriFnc() {
+void cekmeceDisariFnc()  {
     digitalWrite(enablePinY, 0);
     stepperY.setAcceleration(1000);
-    stepperY.setSpeed(1500);
+    stepperY.setSpeed(3000);
     stepperY.moveTo(stepperY.currentPosition() - motor2Step);
     while (stepperY.distanceToGo() != 0) {
         stepperY.runSpeed();

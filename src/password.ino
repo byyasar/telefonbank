@@ -1,11 +1,12 @@
 #include "password.h"
 #include "lcd.h"
+#include "MotorControl.h"
 
 extern LiquidCrystal_I2cTUR lcd; // LCD nesnesi
 
 char enteredPassword[7]; // Girilen şifre için dizi
 byte passwordIndex = 0; // Şifre dizisinin indeksi
-const char correctPassword[7] = "123456"; // Doğru şifre
+const char correctPassword[7] = "336699"; // Doğru şifre
 
 extern bool inPasswordEntryMode; // Şifre giriş modu durumu
 
@@ -15,6 +16,13 @@ void verifyPassword() {
     lcd.clear(); // LCD'yi temizle
     lcd.setCursor(0, 1); // İkinci satıra git
     lcd.print("Sifre dogru!"); // "Şifre doğru!" yazısını yaz
+    konumaGitFnc(3);
+    lcd.clear(); // LCD'yi temizle
+    lcd.setCursor(0, 1); // İkinci satıra git
+    lcd.print("Calışıyor"); // "Şifre doğru!" yazısını ya
+    kapagiAcFnc();
+    cekmeceDisariFnc();
+
   } else {
     lcd.clear(); // LCD'yi temizle
     lcd.setCursor(0, 1); // İkinci satıra git

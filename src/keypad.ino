@@ -19,11 +19,11 @@ void handleKey(char key)
     {
         if (key == 'A')
         {
-            cekmeceDisariFnc();
+            cekmeceIceriFnc();
         }
         if (key == 'B')
         {
-            cekmeceIceriFnc();
+            cekmeceDisariFnc();
         }
         if (key == 'C')
         {
