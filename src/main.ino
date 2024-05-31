@@ -1,217 +1,146 @@
-// 27.5.24
-#include <Arduino.h>
-#include <Wire.h>
-#include "myKeypad.h"
-#include "myRfid.h"
+#include "MotorControl.h"
+#include "RFIDControl.h"
+//#include "LCDControl.h"
+//#include "KeypadControl.h"
+#include "EncoderControl.h"
+#include <Wire.h> // I2C kütüphanesi
+#include <LiquidCrystal_I2cTUR.h> // I2C LCD kütüphanesi
+#include <Keypad.h> // Keypad kütüphanesi
+#include "lcd.h" // LCD işlemlerini içeren dosya
+#include "mykeypad.h" // Keypad işlemlerini içeren dosya
+#include "password.h" // Şifre işlemlerini içeren dosya
 
-String satir1, satir2, satir3, satir4 = "";
+LiquidCrystal_I2cTUR lcd(0x27, 20, 4); // I2C adresi 0x27 olan 20x4 LCD tanımlaması
 
-ulong sonZaman = 0;
-ulong ekranYenileme = 500;
 
-void setup()
-{
-  Serial.begin(9600);
+extern  const int numSections;
+extern  String sectionPasswords[numSections];
+extern String rfidUIDs[numSections];
 
-  // Motor1 pin ayarları
-  pinMode(dirPinX, OUTPUT);
-  pinMode(stepPinX, OUTPUT);
-  pinMode(enablePinX, OUTPUT);
-  // Motor2 pin ayarları
-  pinMode(dirPinY, OUTPUT);
-  pinMode(stepPinY, OUTPUT);
-  pinMode(enablePinY, OUTPUT);
-  // Motor3 pin ayarları
-  pinMode(dirPinZ, OUTPUT);
-  pinMode(stepPinZ, OUTPUT);
-  pinMode(enablePinZ, OUTPUT);
-  // Motoru etkinleştir
-  digitalWrite(enablePinX, 1);
-  digitalWrite(enablePinY, 1);
-  digitalWrite(enablePinZ, 1);
 
-  // Enkoder pinini giriş olarak ayarla
-  pinMode(encoderPin, INPUT_PULLUP);
+// Keypad ayarları
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[ROWS][COLS] = {
+  { '1', '2', '3', 'A' },
+  { '4', '5', '6', 'B' },
+  { '7', '8', '9', 'C' },
+  { '*', '0', '#', 'D' }
+};
 
-  // Motorun hız ve ivme ayarları
-  stepperX.setMaxSpeed(1000);
-  stepperX.setAcceleration(500);
+uint8_t colPins[COLS] = { 39, 37, 35, 33 };  // Pins connected to C1, C2, C3, C4
+uint8_t rowPins[ROWS] = { 47, 45, 43, 41 };  // Pins connected to R1, R2, R3, R4
 
-  // LCD ve RFID başlatma
-  lcd.init();
-  lcd.backlight();
-  SPI.begin();
-  mfrc522.PCD_Init();
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+unsigned long lastActivityTime; // Son aktivite zamanı
+const unsigned long timeoutDuration = 10000; // 10 saniye zaman aşımı süresi
+bool inPasswordEntryMode = false; // Şifre giriş modu durumu
 
-  sifirlamaFNC();
-  stepperX.setCurrentPosition(0); // Mevcut pozisyonu sıfırla
-  Serial.println("Sıfırlama tamamlandı.");
-  satir1 = "   Telefon Bank v1";
-  satir2 = "--- Hoş Geldiniz ---";
-  satir3 = "";
-  satir4 = ".. Kart Okutunuz ...";
+
+
+int konum = 0;
+
+void setup() {
+    Serial.begin(9600);
+
+    // Pin ve motor ayarları
+    setupMotors();
+    setupEncoder();
+
+    // LCD ve RFID başlatma
+    lcd.init();
+    lcd.backlight();
+    SPI.begin();
+    mfrc522.PCD_Init();
+
+    // Şifre ve RFID UID dizilerini doldurun (örnek)
+    for (int i = 0; i < numSections; i++) {
+        sectionPasswords[i] = String(i);  // Her bölme için şifre olarak bölüm numarasını kullanın (örnek)
+        rfidUIDs[i] = "";                 // Her bölme için sahte UID (örnek)
+    }
+    rfidUIDs[0] = "3c8305";
+    rfidUIDs[9] = "ffde251e";
+    rfidUIDs[4] = "69de397d";
+
+    sifirlamaFNC();
+    stepperX.setCurrentPosition(0);  // Mevcut pozisyonu sıfırla
+    encoderCount = 0;                // Enkoder sayısını sıfırla
+    Serial.println("Sıfırlama tamamlandı.");
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Sistem Hazir");
+    lcd.setCursor(0, 1);
+    lcd.print("Komut Bekleniyor");
+     showWelcomeScreen(); // Hoş geldiniz ekranını göster
+  lastActivityTime = millis(); // Son aktivite zamanını güncelle
 }
 
-void loop()
-{
+void loop() {
+    if (konum != stepperX.currentPosition()) {
+        Serial.println(stepperX.currentPosition());
+        konum = stepperX.currentPosition();
+    }
 
-  EkraniGuncelleFnc();
-  KlayeOkumaFnc();
-  if (konum != stepperX.currentPosition())
-  {
-    Serial.println(stepperX.currentPosition());
-    konum = stepperX.currentPosition();
+    handleRFID(numSections, rfidUIDs);
+    handleSerialCommands();
+   // handleKeypad(numSections, sectionPasswords);
+   char key = keypad.getKey(); // Tuş durumu oku
+
+  if (key) {
+    lastActivityTime = millis(); // Tuşa basıldıysa son aktivite zamanını güncelle
+    handleKey(key); // Tuşu işle
   }
 
-  // Keypad okuma
-  char key = keypad.getKey();
-  if (key)
-  {
-    static String input = "";
-    if (key == '#')
-    {
-
-      satir1 = "Şifre Giriniz :";
-      satir2 = "";
-      satir3 = "";
-      satir4 = "";
-      lcd.setCursor(0, 3);
-      satir3 = girilenSifre;
-      // Şifreyi sıfırlama
-      memset(girilenSifre, 0, sizeof(girilenSifre));
-      sifreIndex = 0;
+  if (inPasswordEntryMode) {
+    unsigned long timeLeft = (timeoutDuration - (millis() - lastActivityTime)) / 1000; // Kalan süreyi hesapla
+    if (timeLeft > 0) {
+      showCountdown(timeLeft); // Kalan süreyi göster
+    } else {
+      showWelcomeScreen(); // Zaman aşımı olduysa hoş geldiniz ekranını göster
     }
-    else if (sifreIndex < 6)
-    {
-      // Şifre girişi devam ediyor
-      girilenSifre[sifreIndex] = key;
-      sifreIndex++;
-      satir3 = girilenSifre;
-      if (key == 'C')
-      {
-        // şifreyi temizle
-        Serial.println("şifreyi temizle");
-        for (int i = 0; i < 6; i++)
-        {
-          girilenSifre[i] =' ';
+  }
+}
+
+void handleSerialCommands() {
+    if (Serial.available() > 0) {
+        char command = Serial.read();
+        switch (command) {
+            case 'a':
+                sagaDonFnc();
+                Serial.println("Tam tur ileri");
+                break;
+            case 's':
+                solaDonFnc();
+                Serial.println("Tam tur geri");
+                break;
+            case 'c':
+                stepperX.stop();  // Motoru durdur
+                stepperY.stop();  // Motoru durdur
+                stepperZ.stop();  // Motoru durdur
+                digitalWrite(enablePinX, 1);
+                digitalWrite(enablePinY, 1);
+                digitalWrite(enablePinZ, 1);
+                Serial.println("Motor durduruldu");
+                break;
+            case 'z':
+                motor2SagaDonFnc();
+                Serial.println("2-Tam tur ileri");
+                break;
+            case 'x':
+                motor2SolaDonFnc();
+                Serial.println("2-Tam tur geri");
+                break;
+            case 'm':
+                motor3SagaDonFnc();
+                Serial.println("3-Tam tur ileri");
+                break;
+            case 'n':
+                motor3SolaDonFnc();
+                Serial.println("3-Tam tur geri");
+                break;
+            default:
+                Serial.println("Geçersiz komut");
+                break;
         }
-        satir3 = girilenSifre;
-      }
     }
-    if (key == '*' && sifreIndex == 6)
-    {
-      
-      if (key == 'C')
-      {
-        // şifreyi temizle
-        Serial.println("şifreyi temizle");
-        for (int i = 0; i < 6; i++)
-        {
-          girilenSifre[i] =' ';
-        }
-        satir3 = girilenSifre;
-      }
-      Serial.println("şifreyi kontrol et");
-      int id = (String(girilenSifre[0]) + String(girilenSifre[1])).toInt();
-
-      // char str[4];
-      String sifre = "";
-      for (int i = 2; i < 6; i++)
-      {
-        // sprintf(str, "%d", girilenSifre[i]);
-        // itoa(girilenSifre[i], str, 10); // 10 tabanı (decimal) kullanarak dönüştür
-        sifre += String(girilenSifre[i]);
-
-        Serial.print("sifre :");
-        Serial.println(sifre);
-      }
-      Serial.print("sifre :");
-      Serial.println(sifre);
-      Serial.print("id :");
-      Serial.println(sifreDogrulamaFnc(id, sifre));
-    }
-    if (key == 'A')
-    {
-      motor2SagaDonFnc();
-    }
-    if (key == 'B')
-    {
-      motor2SolaDonFnc();
-    }
-    /*if (key == 'C')
-    {
-      motor3SolaDonFnc();
-    }*/
-    if (key == 'D')
-    {
-      motor3SagaDonFnc();
-    }
-  }
-}
-
-void EkraniGuncelleFnc()
-{
-  String mesaj = "";
-  cekmeceDurum ? mesaj = "Çek:Açık" : mesaj = "Çek:Kapalı";
-  kapakDurum ? mesaj += " Kap:Açık" : mesaj += " Kap:Kapal";
-  satir4 = mesaj;
-
-  if (millis() - sonZaman > ekranYenileme)
-  {
-    EkranaYaz(0, satir1);
-    EkranaYaz(1, satir2);
-    EkranaYaz(2, satir3);
-    EkranaYaz(3, satir4);
-    sonZaman = millis();
-  }
-}
-
-void KlayeOkumaFnc()
-{
-  if (Serial.available() > 0)
-  {
-    char command = Serial.read();
-
-    switch (command)
-    {
-    case 'a':
-      sagaDonFnc();
-      Serial.println("Tam tur ileri");
-      break;
-    case 's':
-      solaDonFnc();
-      Serial.println("Tam tur geri");
-      break;
-    case 'c':
-      stepperX.stop(); // Motoru durdur
-      stepperY.stop(); // Motoru durdur
-      stepperZ.stop(); // Motoru durdur
-      digitalWrite(enablePinX, 1);
-      digitalWrite(enablePinY, 1);
-      digitalWrite(enablePinZ, 1);
-      Serial.println("Motor durduruldu");
-      break;
-
-    case 'z':
-      motor2SagaDonFnc();
-      Serial.println("2-Tam tur ileri");
-      break;
-    case 'x':
-      motor2SolaDonFnc();
-      Serial.println("2-Tam tur geri");
-      break;
-    case 'm':
-      motor3SagaDonFnc();
-      Serial.println("3-Tam tur ileri");
-      break;
-    case 'n':
-      motor3SolaDonFnc();
-      Serial.println("3-Tam tur geri");
-      break;
-    default:
-
-      Serial.println("Geçersiz komut");
-      break;
-    }
-  }
 }
