@@ -31,6 +31,7 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 unsigned long lastActivityTime;              // Son aktivite zamanı
 const unsigned long timeoutDuration = 10000; // 10 saniye zaman aşımı süresi
 bool inPasswordEntryMode = false;            // Şifre giriş modu durumu
+bool inManuelMotorKontrolMode = false;
 
 int konum = 0;
 
@@ -61,9 +62,9 @@ void setup()
     sifirlamaFNC();
     stepperX.setCurrentPosition(0); // Mevcut pozisyonu sıfırla
     encoderCount = 0;               // Enkoder sayısını sıfırla
-    
+
     Serial.println("Sıfırlama tamamlandı.");
-    
+
     showWelcomeScreen();         // Hoş geldiniz ekranını göster
     lastActivityTime = millis(); // Son aktivite zamanını güncelle
 }
@@ -117,29 +118,29 @@ void handleSerialCommands()
             Serial.println("Tam tur geri");
             break;
         case 'c':
+            Serial.println("Motor durduruldu");
             stepperX.stop(); // Motoru durdur
             stepperY.stop(); // Motoru durdur
             stepperZ.stop(); // Motoru durdur
             digitalWrite(enablePinX, 1);
             digitalWrite(enablePinY, 1);
             digitalWrite(enablePinZ, 1);
-            Serial.println("Motor durduruldu");
             break;
         case 'z':
-            motor2SagaDonFnc();
-            Serial.println("2-Tam tur ileri");
+            Serial.println("Çekmeceyi kapat");
+            cekmeceDisariFnc();
             break;
         case 'x':
-            motor2SolaDonFnc();
-            Serial.println("2-Tam tur geri");
+            Serial.println("Çekmeceyi aç");
+            cekmeceIceriFnc();
             break;
         case 'm':
-            motor3SagaDonFnc();
-            Serial.println("3-Tam tur ileri");
+            Serial.println("Kapağı aç");
+            kapagiAcFnc();
             break;
         case 'n':
-            motor3SolaDonFnc();
-            Serial.println("3-Tam tur geri");
+            Serial.println("Kapağı kapat");
+            kapagiKapatFnc();
             break;
         default:
             Serial.println("Geçersiz komut");

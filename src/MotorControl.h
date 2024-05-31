@@ -93,7 +93,7 @@ void konumaGitFnc(int id) {
     Serial.println(stepperX.currentPosition());
 }
 
-void motor2SagaDonFnc() {
+void cekmeceDisariFnc() {
     stepperY.setCurrentPosition(0);
     digitalWrite(enablePinY, 0);
     stepperY.setSpeed(1500);
@@ -105,7 +105,7 @@ void motor2SagaDonFnc() {
     digitalWrite(enablePinY, 1);
 }
 
-void motor2SolaDonFnc() {
+void cekmeceIceriFnc() {
     digitalWrite(enablePinY, 0);
     stepperY.setAcceleration(1000);
     stepperY.setSpeed(1500);
@@ -151,7 +151,7 @@ void sifirlamaFNC() {
     digitalWrite(enablePinX, 1);
 }
 
-void motor3SagaDonFnc() {
+void kapagiAcFnc() {
     stepperZ.setCurrentPosition(0);
     digitalWrite(enablePinZ, 0);
     stepperZ.setMaxSpeed(200000);
@@ -163,7 +163,7 @@ void motor3SagaDonFnc() {
     digitalWrite(enablePinZ, 1);
 }
 
-void motor3SolaDonFnc() {
+void kapagiKapatFnc() {
     digitalWrite(enablePinZ, 0);
     stepperZ.setMaxSpeed(200000);
     stepperZ.setAcceleration(4000);
