@@ -2,6 +2,7 @@
 #define MOTORCONTROL_H
 
 #include <AccelStepper.h>
+#include "lcd.h"
 
 
 extern int konum;
@@ -139,6 +140,7 @@ void solaDonFnc() {
 
 void sifirlamaFNC() {
     Serial.println("Sıfırlama başladı");
+    showHomingScreen();
     stepperX.setCurrentPosition(0);
     stepperX.moveTo(stepperX.currentPosition() + 89000);  // Geri hareket et
     stepperX.setAcceleration(1000);
